@@ -1,0 +1,33 @@
+{
+
+"AWSTemplateFormatVersion": "2010-09-09",
+"Description": "This is ec2stack with userdata",
+	"Resources": {
+		"Ec2instanceuser": {
+			"Type": "AWS::EC2::Instance",
+			"Properties": {
+				"ImageId": "ami-f173cc91",
+				"SubnetId": "subnet-845450f2",
+				"InstanceType": "t2.micro",
+				"SecurityGroupIds": ["sg-d44e03ac"],
+				"KeyName": "amazonlinux_testinstancekey",
+				"Tags":[
+					{ "Key": "Name", "Value": "Ec2instanceuser" }],
+				"UserData": {
+                    "Fn::Base64" : {
+                        "Fn::Join" : ["",
+                            [
+								"#!bin/bash\n",
+								"yum -y install httpd\n",
+								"yum -y install mysqld\n",
+								"service httpd start\n",
+								"service mysqld start\n"
+							]	
+						]
+					}
+				}
+			}
+		}
+	},
+"Outputs":{}
+}
