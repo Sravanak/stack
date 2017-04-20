@@ -1,0 +1,104 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+"Description": "TeststackELB",
+  
+"Parameters": {
+	"asVpcSubnets":{
+		"Description": "The Subnet(s) to use for the autoscaling group",
+		"Type": "List<AWS::EC2::Subnet::Id>",
+	    },
+	"noElb":{
+      "Description": "Whether to create an ELB or not",
+      "Type": "String",
+      "Default": "UNSET"
+    },
+	"elbName": {
+      "Description": "The name to use for the ELB",
+      "Type": "String",
+       },
+	"existingElbName": {
+      "Description": "The name of an existing ELB to use",
+      "Type": "String",
+      "Default": "UNSET"
+    },
+	"elbSecurityGroups": {
+		"Description": "ELB Security Groups to associate with Launch Configuration",
+		"Type": "String",
+		    }
+},
+  
+  "Conditions": {
+    "CreateELB": {
+      "Fn::And": [
+        { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "noElb" }, "true" ] } ] },
+        { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "elbName" }, "UNSET" ] } ] },
+        { "Fn::Equals": [ { "Ref": "existingElbName" }, "UNSET" ] },
+        { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "elbSecurityGroups" }, "UNSET" ] } ] }
+      ]
+    }
+},	
+		"Resources": {
+			"Testinstance1": {
+				"Type": "AWS::EC2::Instance",
+				"Properties": {
+				"ImageId" : "ami-f173cc91",
+                "InstanceType" : "t2.micro",
+				"SecurityGroupIds" : [ "sg-d44e03ac" ],
+				"SourceDestCheck" : "false",
+				"AvailabilityZone" : "us-west-2a",
+				"SubnetId" : "subnet-845450f2",
+				"IamInstanceProfile" : "UNIXAdmin",
+				"Tags": [                                                            
+					{"Key" : "Name", "Value" : "TestELBinstance1"},
+                    {"Key" : "Role", "Value" : "UNIXAdmin"}],
+                "KeyName": "amazonlinux_testinstancekey",
+				"BlockDeviceMappings" : [
+			    {"DeviceName" : "/dev/xvdf",
+				"Ebs" : { "VolumeSize" : "10","DeleteOnTermination" : "true"}}]
+				}
+    }, 
+			"Testinstance2": {
+			"Type": "AWS::EC2::Instance",
+            "Properties": {
+				"ImageId" : "ami-f173cc91",
+                "InstanceType" : "t2.micro",
+				"SecurityGroupIds" : [ "sg-d44e03ac" ],
+				"SourceDestCheck" : "false",
+				"AvailabilityZone" : "us-west-2a",
+				"SubnetId" : "subnet-845450f2",
+				"IamInstanceProfile" : "UNIXAdmin",
+				"Tags": [                                                            
+					{"Key" : "AGS", "Value" : "TestELBinstance1"},
+                    {"Key" : "Role", "Value" : "UNIXAdmin"}],
+                "KeyName": "amazonlinux_testinstancekey",
+				"BlockDeviceMappings" : [
+			    {"DeviceName" : "/dev/xvdf",
+				"Ebs" : { "VolumeSize" : "10","DeleteOnTermination" : "true"}}]
+				}
+    }, 
+		"APPGateTestELB" : {
+		"Condition": "CreateELB",
+		"Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+			"Properties" : {
+			"LoadBalancerName" : { "Ref": "elbName" },
+			"CrossZone" : "false",
+			"Subnets": { "Ref": "asVpcSubnets" },
+			"SecurityGroups" : [{ "Ref": "elbSecurityGroups" }],
+			"Instances" : [ { "Ref" : "Testinstance1" },{ "Ref" : "Testinstance2" } ],
+			"Scheme" : "internal",
+        "Listeners" : [ 
+		{ "LoadBalancerPort" : "80",
+          "InstancePort" : "80",
+          "Protocol" : "HTTP"}],
+        "HealthCheck" : {
+          "Target" : "TCP:80",
+          "HealthyThreshold" : "5",
+          "UnhealthyThreshold" : "2",
+          "Interval" : "30",
+          "Timeout" : "25"
+        }
+      }
+    }
+},
+	"Outputs": {}
+}
