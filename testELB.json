@@ -5,7 +5,7 @@
 "Parameters": {
 	"asVpcSubnets":{
 		"Description": "The Subnet(s) to use for the autoscaling group",
-		"Type": "List<AWS::EC2::Subnet::Id>",
+		"Type": "List<AWS::EC2::Subnet::Id>"
 	    },
 	"noElb":{
       "Description": "Whether to create an ELB or not",
@@ -14,7 +14,7 @@
     },
 	"elbName": {
       "Description": "The name to use for the ELB",
-      "Type": "String",
+      "Type": "String"
        },
 	"existingElbName": {
       "Description": "The name of an existing ELB to use",
@@ -23,7 +23,7 @@
     },
 	"elbSecurityGroups": {
 		"Description": "ELB Security Groups to associate with Launch Configuration",
-		"Type": "String",
+		"Type": "String"
 		    }
 },
   
